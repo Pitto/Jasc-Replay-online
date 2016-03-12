@@ -6,10 +6,17 @@ int nX, nY;
 int delay = 16;
 PImage bmp_top_net;
 PImage[] bmp_sprite = new Pimage[136];
+int TOT_FRAMES = 60;
+int Current_Frame = 0;
 
-String lines[] = loadStrings("list.txt");
+String Replay_Data[] = loadStrings("000.rep");
+int Camera_Data[TOT_FRAMES][2];
+int Ball_Data[TOT_FRAMES][4];
+int Player_Data[TOT_FRAMES][22][3];
+int Replay_Line = 0;
 
-/*PITCH VARIABLES*/
+
+/*___________________PITCH VARIABLES_____________________*/
 int Pitch_x = 50;
 int Pitch_y = 50; 
 int Pitch_w = 832;
@@ -39,13 +46,37 @@ void setup(){
 	nX = X;
 	nY = Y; 
 	bmp_top_net = loadImage("net_top.png"); 
-	int a;
+	
 	int b;
-	for (a=0;a<136;a++){
+	
+	for (int a=0;a<136;a++){
 		b = a +1
 		bmp_sprite[a] = loadImage("img/_"+b+".png");
 	}
-	//
+	
+	
+	for (int frame=0; frame < TOT_FRAMES-1; frame++){
+		/*store Camera Data*/
+		int[] Camera_Data_Temp = int(split(Replay_Data[Replay_Line], ','));
+		Camera_Data[frame][0] = Camera_Data_Temp[0];
+		Camera_Data[frame][1] = Camera_Data_Temp[1];
+		/*Store Players Data*/
+		for (int c = 0; c < 22; c++ ) {
+			Replay_Line++;
+			int[] Player_Data_temp = int(split(Replay_Data[Replay_Line],','));
+			Player_Data[frame][c][0] = Player_Data_temp[0];
+			Player_Data[frame][c][1] = Player_Data_temp[1];
+			Player_Data[frame][c][2] = Player_Data_temp[2];
+		}
+		/*Store Ball Data*/
+		Replay_Line++;
+		int[] Ball_Data_Temp = int(split(Replay_Data[Replay_Line],','));
+		Ball_Data[frame][0] = Ball_Data_Temp[0];
+		Ball_Data[frame][1] = Ball_Data_Temp[1];
+		Ball_Data[frame][2] = Ball_Data_Temp[2];
+		Ball_Data[frame][3] = Ball_Data_Temp[3];
+		Replay_Line++;
+	}
 }
 
 // Main draw loop
@@ -62,18 +93,6 @@ void draw(){
   
 // println();
 
-
- /* line(50, 74, 590, 74);
-  line(50, 74, 50, 400);
-  line(590, 74, 590, 400);
-  fill(#00AA00);
-  rect(100, 74, 440, 150);
-  rect(200, 74, 250, 50);
-  ellipse( 320, 180, 3, 3 );  */
-  
-  
-
-
   //Draw background pitch
   draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
 						Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
@@ -83,10 +102,12 @@ void draw(){
 	ellipse (X + int(cos(_abtp(mouseX,mouseY,X,Y))*10)+10,Y + int(-sin(_abtp(mouseX,mouseY,X,Y))*10)+20,7,2)
 	fill(#FFFFFF);
 	stroke (#FFFFFF);
-	ellipse (X + int(cos(_abtp(mouseX,mouseY,X,Y))*10)+10,Y + int(-sin(_abtp(mouseX,mouseY,X,Y))*10)+15,7,7)
-  image( bmp_sprite[start_frame(_abtp(mouseX,mouseY,X,Y))+frameCount%6], X, Y-5);
-   
-    println("Frame " + frameCount + "X" + int(X) + "; Y" + int(Y));       
+	ellipse (X + int(cos(_abtp(mouseX,mouseY,X,Y))*10)+10,Y + int(-sin(_abtp(mouseX,mouseY,X,Y))*10)+15,7,7);
+  for (int c = 0 ; c < 22; c++) {
+	  image( bmp_sprite[Player_Data[0][2]], c*3, c*4);
+  }
+//   Camera_Data[0][0]=5;
+  // println(Camera_Data[0][0]);
 }
 
 // Set circle's next destination

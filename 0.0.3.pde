@@ -6,10 +6,13 @@ int nX, nY;
 int delay = 16;
 PImage bmp_top_net;
 PImage[] bmp_sprite = new Pimage[136];
+int TOT_FRAMES = 60;
+int Current_Frame = 0;
+int Replay_Line = 0;
 
-String lines[] = loadStrings("list.txt");
+String Replay_Data[] = loadStrings("000.rep");
 
-/*PITCH VARIABLES*/
+/*___________________PITCH VARIABLES_____________________*/
 int Pitch_x = 50;
 int Pitch_y = 50; 
 int Pitch_w = 832;
@@ -31,9 +34,9 @@ int Cyo = 0;
 
 // Setup the Processing Canvas
 void setup(){
-	size( 640, 480 );
+	size( 800, 600 );
 	strokeWeight( 10 );
-	frameRate( 15 );
+	frameRate( 30 );
 	X = width / 2;
 	Y = width / 2;
 	nX = X;
@@ -41,39 +44,19 @@ void setup(){
 	bmp_top_net = loadImage("net_top.png"); 
 	int a;
 	int b;
+	
 	for (a=0;a<136;a++){
 		b = a +1
 		bmp_sprite[a] = loadImage("img/_"+b+".png");
 	}
-	//
 }
 
 // Main draw loop
 void draw(){
   
-  // Track circle to new destination
-  X+=(nX-X)/delay;
-  Y+=(nY-Y)/delay;
-  
-  Cxo -= -(nX-X)/10
-  Cyo -= -(nY-Y)/10
   // Fill canvas green
   background( #00AA00 );
   
-// println();
-
-
- /* line(50, 74, 590, 74);
-  line(50, 74, 50, 400);
-  line(590, 74, 590, 400);
-  fill(#00AA00);
-  rect(100, 74, 440, 150);
-  rect(200, 74, 250, 50);
-  ellipse( 320, 180, 3, 3 );  */
-  
-  
-
-
   //Draw background pitch
   draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
 						Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
@@ -83,10 +66,26 @@ void draw(){
 	ellipse (X + int(cos(_abtp(mouseX,mouseY,X,Y))*10)+10,Y + int(-sin(_abtp(mouseX,mouseY,X,Y))*10)+20,7,2)
 	fill(#FFFFFF);
 	stroke (#FFFFFF);
-	ellipse (X + int(cos(_abtp(mouseX,mouseY,X,Y))*10)+10,Y + int(-sin(_abtp(mouseX,mouseY,X,Y))*10)+15,7,7)
-  image( bmp_sprite[start_frame(_abtp(mouseX,mouseY,X,Y))+frameCount%6], X, Y-5);
-   
-    println("Frame " + frameCount + "X" + int(X) + "; Y" + int(Y));       
+	  /*Realtime parsing - SIGH!*/
+	if (Replay_Line < 2856) {
+	int[] t_co = int(split(Replay_Data[Replay_Line],','));
+	Cxo = t_co[0];
+	Cyo = t_co[1];
+	Replay_Line++;
+	for (int c = 0; c < 22; c++) {
+		int[] t_p = int(split(Replay_Data[Replay_Line],','));
+		image( bmp_sprite[t_p[2]], t_p[0] - Cxo, t_p[1] - Cyo);
+ 		Replay_Line++;
+ 	}
+ 	int[] t_b = int(split(Replay_Data[Replay_Line],','));
+	bx = t_b[0];
+	by = t_b[1];
+	bz = t_b[2];
+	bf = t_b[3];
+	ellipse (bx - Cxo + 10, by - Cyo - bz + 10,7,7);
+	Replay_Line++;
+ }else{Replay_Line=0;}
+ //  println(Replay_Data[0]);
 }
 
 // Set circle's next destination
