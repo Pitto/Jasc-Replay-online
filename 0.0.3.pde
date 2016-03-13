@@ -76,14 +76,10 @@ void draw(){
   	stroke (#005500);
 
 	/*Realtime parsing - SIGH!*/
-	if (Replay_Line < 2856) {
-		int[] t_co = int(split(Replay_Data[Replay_Line],','));
-		//Cxo = t_co[0];
-		//Cyo = t_co[1];
-		Replay_Line++;
+	if (Replay_Line < 2760) {
 		for (int c = 0; c < 22; c++) {
 			int[] t_p = int(split(Replay_Data[Replay_Line],','));
-			if (Replay_Line % 2) {
+			if (c < 11) {
 				image( bmp_t2_sprite[t_p[2]], t_p[0] - Cxo, t_p[1] - Cyo);
 			}else{
 				image( bmp_t1_sprite[t_p[2]], t_p[0] - Cxo, t_p[1] - Cyo);
