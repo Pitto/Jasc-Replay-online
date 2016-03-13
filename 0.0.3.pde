@@ -4,7 +4,8 @@ float radius = 50.0;
 int X, Y;
 int nX, nY;
 int delay = 16;
-PImage bmp_top_net;
+PImage[] bmp_net = new Pimage[2];
+PImage[] bmp_ball = new Pimage[15];
 PImage[] bmp_t1_sprite = new Pimage[136];
 PImage[] bmp_t2_sprite = new Pimage[136];
 int TOT_FRAMES = 60;
@@ -12,9 +13,9 @@ int Current_Frame = 0;
 int Replay_Line = 0;
 int SCREEN_W = 400;
 int SCREEN_H = 300;
+String Replay_Data[] = loadStrings("rep/15.rep");
 
 float CAMERA_EASING_RATIO = 0.25;
-String Replay_Data[] = loadStrings("000.rep");
 
 /*___________________PITCH VARIABLES_____________________*/
 int Pitch_x = 50;
@@ -52,7 +53,8 @@ void setup(){
 	Y = width / 2;
 	nX = X;
 	nY = Y; 
-	bmp_top_net = loadImage("net_top.png"); 
+	bmp_net[0] = loadImage("img/pitch/net_top.png"); 
+	bmp_net[1] = loadImage("img/pitch/net_bottom.png"); 
 	int a;
 	int b;
 	
@@ -61,17 +63,21 @@ void setup(){
 		bmp_t1_sprite[a] = loadImage("img/t1/_"+b+".png");
 		bmp_t2_sprite[a] = loadImage("img/t2/_"+b+".png");
 	}
+	
+	for (a=1;a<16;a++){
+		bmp_ball[a] = loadImage("img/ball/_"+a+".png");
+	}
+
 }
 
 // Main draw loop
 void draw(){
-  noSmooth()
+  noSmooth();
   // Fill canvas green
   background( #00AA00 );
   
   //Draw background pitch
-   update_camera_position();
-	draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
+   draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
 						Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
   	stroke (#005500);
 
@@ -95,13 +101,16 @@ void draw(){
 		fill(#003300);
 		stroke (#003300);
 		ellipse (bx - Cxo + 10, by - Cyo + 15,7,3);
-		fill(#FFFFFF);
-		stroke (#FFFFFF);
-		ellipse (bx - Cxo + 10, by - Cyo - bz + 10,7,7);
+		image (bmp_ball[bf +1], bx - Cxo , by - Cyo - bz +5);
 		Replay_Line++;
 	}else{
 		Replay_Line=0;
+		Replay_Data = loadStrings("rep/" + int(random(35)) + ".rep");
 	}
+	image (bmp_net[1], Xm -50- Cxo, Pitch_y+ Pitch_h-28-Cyo);
+
+	update_camera_position();
+	
 }
 
 void mouseMoved(){
@@ -164,7 +173,7 @@ void draw_pitch_lines ( int x, int y, int w, int h, int xm, int ym, int paw,
     //Bottom Gk area
     rect (xm - gkw - cxo, y + h - gkh - cyo,gkw*2, gkh);
       //top net
-  image (bmp_top_net, Xm -50- Cxo, y-38-Cyo)
+  image (bmp_net[0], Xm -50- Cxo, y-38-Cyo)
 }
 
 void update_camera_position() {
@@ -176,7 +185,6 @@ void update_camera_position() {
     Cyo = cy - int(SCREEN_H/2);
     
 }
-
 
 int d_b_t_p (int x1, int y1, int x2, int y2) {
     return int (sqrt(((x1-x2)*(x1-x2))+((y1-y2)*(y1-y2))));
