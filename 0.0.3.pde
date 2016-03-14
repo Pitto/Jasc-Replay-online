@@ -13,7 +13,9 @@ int Current_Frame = 0;
 int Replay_Line = 0;
 int SCREEN_W = 400;
 int SCREEN_H = 300;
-String Replay_Data[] = loadStrings("rep/15.rep");
+int r_slot = 0;
+String Replay_Data[] = loadStrings("rep/"+r_slot+".rep");
+
 
 float CAMERA_EASING_RATIO = 0.25;
 
@@ -105,7 +107,11 @@ void draw(){
 		Replay_Line++;
 	}else{
 		Replay_Line=0;
-		Replay_Data = loadStrings("rep/" + int(random(35)) + ".rep");
+		r_slot++;
+		if (r_slot > 19) {
+		r_slot=0;
+		}
+		Replay_Data = loadStrings("rep/" + r_slot + ".rep");
 	}
 	image (bmp_net[1], Xm -50- Cxo, Pitch_y+ Pitch_h-28-Cyo);
 
@@ -160,16 +166,23 @@ void draw_pitch_lines ( int x, int y, int w, int h, int xm, int ym, int paw,
     //drawing the pitch's border lines
     rect (x - cxo, y - cyo,w , h );
     //middle pitch dish
-    ellipse (xm - cxo, ym - cyo, pac, pac);
+    ellipse (xm - cxo, ym - cyo, pac*2, pac*1.5);
+     //middle pitch dish
+    ellipse (xm - cxo, ym - cyo, 3, 3);
     //middle line, circle , dish
     line (x - cxo, ym - cyo,x + w - cxo, ym - cyo);
   
     //Top penalty area
+    arc(xm - cxo, y + pah - cyo, pac * 2, pac * 1.5, 0, PI)
     rect (xm - paw - cxo, y - cyo,paw*2, pah);
+    ellipse (xm - cxo, y + pah/2 + 25 - cyo, 3, 3);
+   
     //Top Gk area
     rect (xm - gkw - cxo, y - cyo,gkw*2,gkh);
     //Bottom penalty area
+    arc(xm - cxo, y +h- pah - cyo, pac * 2, pac * 1.5, PI, TWO_PI)
     rect (xm - paw - cxo, y + h - pah - cyo,paw*2, pah);
+    ellipse (xm - cxo, y + h - pah/2 - 25 - cyo, 3, 3);
     //Bottom Gk area
     rect (xm - gkw - cxo, y + h - gkh - cyo,gkw*2, gkh);
       //top net
