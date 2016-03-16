@@ -1,20 +1,20 @@
 
 // Global variables
-float radius = 50.0;
-int X, Y;
-int nX, nY;
-int delay = 16;
 PImage[] bmp_net = new Pimage[2];
 PImage[] bmp_ball = new Pimage[15];
 PImage[] bmp_t1_sprite = new Pimage[136];
 PImage[] bmp_t2_sprite = new Pimage[136];
-int TOT_FRAMES = 60;
+int TOT_FRAMES = 120;
 int Current_Frame = 0;
 int Replay_Line = 0;
-int SCREEN_W = 400;
-int SCREEN_H = 300;
+int SCREEN_W = 1000;
+int SCREEN_H = 480;
 int r_slot = 0;
 String Replay_Data[] = loadStrings("rep/"+r_slot+".rep");
+//int[][][] Player_Data;
+Player_Data = new int[120][22][3];
+//int[][] Ball_Data;
+Ball_Data = new int[120][4];
 
 
 float CAMERA_EASING_RATIO = 0.25;
@@ -42,90 +42,95 @@ int Cyo = 0;
 
 int cx=Xm;
 int cy=Ym;
-int bx = 0;
-int by= 0;
+int bx = 300;
+int by= 300;
 
 
 // Setup the Processing Canvas
 void setup(){
+		
 	size(SCREEN_W, SCREEN_H);
 	strokeWeight( 10 );
 	frameRate( 30 );
-	X = width / 2;
-	Y = width / 2;
-	nX = X;
-	nY = Y; 
 	bmp_net[0] = loadImage("img/pitch/net_top.png"); 
-	bmp_net[1] = loadImage("img/pitch/net_bottom.png"); 
-	int a;
-	int b;
-	
+	bmp_net[1] = loadImage("img/pitch/net_bottom.png");
 	for (a=0;a<136;a++){
-		b = a +1
+		int b;
+		b = a +1;
 		bmp_t1_sprite[a] = loadImage("img/t1/_"+b+".png");
 		bmp_t2_sprite[a] = loadImage("img/t2/_"+b+".png");
 	}
-	
 	for (a=1;a<16;a++){
 		bmp_ball[a] = loadImage("img/ball/_"+a+".png");
 	}
-
+	load_replay_slot(int(random(35)));
 }
 
 // Main draw loop
 void draw(){
-  noSmooth();
-  // Fill canvas green
-  background( #00AA00 );
-  
-  //Draw background pitch
-   draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
+	noSmooth();
+	// Fill canvas green
+	background( #00AA00 );
+	stroke (#005500);
+	//top net
+	image (bmp_net[0], Xm -50- Cxo, Pitch_y-38-Cyo)
+	//Draw background pitch
+	draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
 						Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
-  	stroke (#005500);
-
-	/*Realtime parsing - SIGH!*/
-	if (Replay_Line < 2760) {
-		for (int c = 0; c < 22; c++) {
-			int[] t_p = int(split(Replay_Data[Replay_Line],','));
-			if (c < 11) {
-				image( bmp_t2_sprite[t_p[2]], t_p[0] - Cxo, t_p[1] - Cyo);
-			}else{
-				image( bmp_t1_sprite[t_p[2]], t_p[0] - Cxo, t_p[1] - Cyo);
-			}
-			Replay_Line++;
-		}
-		int[] t_b = int(split(Replay_Data[Replay_Line],','));
-		bx = t_b[0];
-		by = t_b[1];
-		bz = t_b[2];
-		bf = t_b[3];
-		/*Ball Shadow*/
-		fill(#003300);
-		stroke (#003300);
-		ellipse (bx - Cxo + 10, by - Cyo + 15,7,3);
-		image (bmp_ball[bf +1], bx - Cxo , by - Cyo - bz +5);
-		Replay_Line++;
-	}else{
-		Replay_Line=0;
-		r_slot++;
-		if (r_slot > 19) {
-		r_slot=0;
-		}
-		Replay_Data = loadStrings("rep/" + r_slot + ".rep");
-	}
-	image (bmp_net[1], Xm -50- Cxo, Pitch_y+ Pitch_h-28-Cyo);
-
-	update_camera_position();
 	
+	Render_Frame(Current_Frame);
+	Current_Frame++;
+	if (Current_Frame > TOT_FRAMES-1) {
+		load_replay_slot(int(random(35)));
+		Current_Frame =0;
+	}
+	update_camera_position(Ball_Data[Current_Frame][0], Ball_Data[Current_Frame][1]);
 }
 
-void mouseMoved(){
-  nX = mouseX;
-  nY = mouseY;  
-}
 
 float _abtp(int x1, int y1, int x2, int y2) {
 	return -atan2(y1-y2,x1-x2);
+}
+
+void Render_Frame (int frame) {
+	/*Ball line*/
+	if (frame > 20) {
+		for (int c =0 ; c < 20; c++){
+			strokeWeight (10-(int(c/2)));
+			stroke (#006500, 100-int(c*4));
+			/*shadow line*/
+			line(	Ball_Data[frame-c][0] - Cxo + 7,
+					Ball_Data[frame-c][1] - Cyo + 13,
+					Ball_Data[frame-c-1][0] - Cxo + 7,
+					Ball_Data[frame-c-1][1] - Cyo + 13);
+			stroke (#FFFFFF,100-int(c*4));
+			/*white line*/
+			line(	Ball_Data[frame-c][0] - Cxo + 7,
+					Ball_Data[frame-c][1] - Ball_Data[frame-c][2] - Cyo + 13,
+					Ball_Data[frame-c-1][0] - Cxo + 7,
+					Ball_Data[frame-c-1][1] - Ball_Data[frame-c][2] - Cyo + 13);
+		}
+	}
+	
+	//draw players				
+	for (int c = 0; c < 22; c++) {
+		if (c < 11) {
+			image( bmp_t2_sprite[Player_Data[frame][c][2]], Player_Data[frame][c][0] - Cxo, Player_Data[frame][c][1] - Cyo);
+		}else{
+			image( bmp_t1_sprite[Player_Data[frame][c][2]], Player_Data[frame][c][0] - Cxo, Player_Data[frame][c][1] - Cyo);
+		}
+	}
+	
+
+	
+	/*Ball Shadow*/
+	fill(#003300);
+	stroke (#003300);
+	ellipse (Ball_Data[frame][0] - Cxo + 10, Ball_Data[frame][1] - Cyo + 15,8,4);
+	/*draw ball*/
+	image (bmp_ball[Ball_Data[frame][3]+1], Ball_Data[frame][0] - Cxo , Ball_Data[frame][1] - Cyo - Ball_Data[frame][2] +5);
+	/*bottom net*/
+	image (bmp_net[1], Xm -50- Cxo, Pitch_y+ Pitch_h-28-Cyo);
 }
 
 int start_frame (float radiants){
@@ -162,7 +167,7 @@ void draw_pitch_lines ( int x, int y, int w, int h, int xm, int ym, int paw,
                         int gkh, int cxo ,int cyo ) {
     strokeWeight(1);   // Default
 	stroke (#FFFFFF);
-    fill(#005500);
+    fill(#007500);
     //drawing the pitch's border lines
     rect (x - cxo, y - cyo,w , h );
     //middle pitch dish
@@ -171,13 +176,11 @@ void draw_pitch_lines ( int x, int y, int w, int h, int xm, int ym, int paw,
     ellipse (xm - cxo, ym - cyo, 3, 3);
     //middle line, circle , dish
     line (x - cxo, ym - cyo,x + w - cxo, ym - cyo);
-  
     //Top penalty area
     arc(xm - cxo, y + pah - cyo, pac * 2, pac * 1.5, 0, PI)
     rect (xm - paw - cxo, y - cyo,paw*2, pah);
     ellipse (xm - cxo, y + pah/2 + 25 - cyo, 3, 3);
-   
-    //Top Gk area
+     //Top Gk area
     rect (xm - gkw - cxo, y - cyo,gkw*2,gkh);
     //Bottom penalty area
     arc(xm - cxo, y +h- pah - cyo, pac * 2, pac * 1.5, PI, TWO_PI)
@@ -185,18 +188,37 @@ void draw_pitch_lines ( int x, int y, int w, int h, int xm, int ym, int paw,
     ellipse (xm - cxo, y + h - pah/2 - 25 - cyo, 3, 3);
     //Bottom Gk area
     rect (xm - gkw - cxo, y + h - gkh - cyo,gkw*2, gkh);
-      //top net
-  image (bmp_net[0], Xm -50- Cxo, y-38-Cyo)
 }
 
-void update_camera_position() {
+void update_camera_position(int bx, int by) {
+	float cs;
 	cs = d_b_t_p(cx, cy, bx, by) * CAMERA_EASING_RATIO;
     cx -= int (cos(_abtp(cx, cy, bx, by))*cs);
     cy -= int (-sin(_abtp(cx, cy, bx, by))*cs);
-    
     Cxo = cx - int(SCREEN_W/2);
     Cyo = cy - int(SCREEN_H/2);
-    
+}
+
+void load_replay_slot(int slot) {
+	Replay_Data = loadStrings("rep/" + slot + ".rep");
+	int current_line = 0;
+	for (t=0; t< TOT_FRAMES; t++) {
+		/*load and store player data*/
+		for (c=0; c< 22; c++){
+			int[] t_p = int(split(Replay_Data[current_line],','));
+			Player_Data[t][c][0] = t_p[0]; //player x
+			Player_Data[t][c][1] = t_p[1]; //player y
+			Player_Data[t][c][2] = t_p[2]; //player frame
+			current_line++;
+		}
+		/*load and store ball data*/
+		int[] t_p = int(split(Replay_Data[current_line],','));
+		Ball_Data[t][0] = t_p[0]; //ball x
+		Ball_Data[t][1] = t_p[1]; //ball y
+		Ball_Data[t][2] = t_p[2]; //ball z
+		Ball_Data[t][3] = t_p[3]; //ball frame
+		current_line++;
+	}
 }
 
 int d_b_t_p (int x1, int y1, int x2, int y2) {
