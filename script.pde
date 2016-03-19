@@ -4,12 +4,28 @@ bmp_ball 		= new Pimage[15];
 bmp_t1_sprite 	= new Pimage[136];
 bmp_t2_sprite 	= new Pimage[136];
 bmp_pitch 		= new Pimage[];
+/* COLORS: Hex (Alpha, Red, Green, Blue) */
+int C_BLACK 		= 0xFF000000;
+int C_WHITE 		= 0xFFFFFFFF;
+int C_GRAY 			= 0xFF7F7F7F;
+int C_RED 			= 0xFFFF0000;
+int C_BLUE 			= 0xFF0000FF;
+int C_GREEN 		= 0xFF00FF00;
+int C_YELLOW 		= 0xFFFFFF00;
+int C_CYAN 			= 0xFF00FFFF;
+int C_LILIAC 		= 0xFF7F00FF;
+int C_ORANGE 		= 0xFFFF7F00;
+int C_PURPLE 		= 0xFF7F007F;
+int C_DARK_RED 		= 0xFF7F0000;
+int C_DARK_GREEN 	= 0xFF007F00;
+int C_DARK_BLUE 	= 0xFF00007F;
 
 int TOT_FRAMES 		= 120;
 int Current_Frame 	= 0;
 int Replay_Line 	= 0;
-int SCREEN_W 		= 480;
-int SCREEN_H 		= 280;
+int SCREEN_W 		= 320;
+int SCREEN_H 		= 180;
+int SCREEN_LEN		= SCREEN_H * SCREEN_W;
 int r_slot 			= 0;
 String Replay_Data[] = loadStrings("rep/"+r_slot+".rep");
 Player_Data 		= new int[120][22][3];
@@ -18,12 +34,12 @@ Ball_Data 			= new int[120][4];
 float CAMERA_EASING_RATIO = 0.25;
 
 /*___________________PITCH VARIABLES_____________________*/
-int Pitch_x = 50;
-int Pitch_y = 50; 
-int Pitch_w = 832;
-int Pitch_h	= 992;
-int Pitch_middle_w = int(Pitch_w / 2) + Pitch_x;
-int Pitch_middle_h = int(Pitch_h/2) + Pitch_y;
+int Pitch_x 				= 50;
+int Pitch_y 				= 50; 
+int Pitch_w 				= 832;
+int Pitch_h					= 992;
+int Pitch_middle_w 			= int(Pitch_w / 2) + Pitch_x;
+int Pitch_middle_h 			= int(Pitch_h/2) + Pitch_y;
 
 float cs = 0;
 int Xm = int (Pitch_w / 2) + Pitch_x;
@@ -44,22 +60,24 @@ int bx = 300;
 int by = 300;
 
 
+
 // Setup the Processing Canvas
 void setup(){
-		
-	size(SCREEN_W, SCREEN_H);
-	strokeWeight( 10 );
-	frameRate( 30 );
-	bmp_net[0] = loadImage("img/pitch/net_top.png"); 
-	bmp_net[1] = loadImage("img/pitch/net_bottom.png");
-	bmp_pitch = loadImage("img/pitch/pitch.png");
 	
+	size(SCREEN_W, SCREEN_H);
+	//strokeWeight( 10 );
+	frameRate( 30 );
 	for (a=0;a<136;a++){
 		int b;
 		b = a +1;
 		bmp_t1_sprite[a] = loadImage("img/t1/_"+b+".png");
 		bmp_t2_sprite[a] = loadImage("img/t2/_"+b+".png");
 	}
+		
+	bmp_net[0] = 	loadImage("img/pitch/net_top.png"); 
+	bmp_net[1] = 	loadImage("img/pitch/net_bottom.png");
+	bmp_pitch  = 	loadImage("img/pitch/pitch.png");
+		
 	for (a=1;a<16;a++){
 		bmp_ball[a] = loadImage("img/ball/_"+a+".png");
 	}
@@ -77,15 +95,32 @@ void draw(){
 	draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
 						Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
 	
-	
-	
 	Render_Frame(Current_Frame);
 	Current_Frame++;
+	
 	if (Current_Frame > TOT_FRAMES-1) {
 		load_replay_slot(int(random(19)));
 		Current_Frame =0;
 	}
 	update_camera_position(Ball_Data[Current_Frame][0], Ball_Data[Current_Frame][1]);
+
+	loadPixels();
+	for (int i = 0; i < SCREEN_LEN; i++) {
+		/*shirt Team 0*/
+		if (pixels[i] == color(0,0,127)) 		{pixels[i] = C_DARK_RED;}
+		/*shorts Team 0*/
+		if (pixels[i] == color(127,127,255)) 	{pixels[i] = C_WHITE;}
+		/*socks Team 0*/
+		if (pixels[i] == color(63,0,63)) 		{pixels[i] = C_DARK_RED;}
+		/*shirt Team 1*/
+		if (pixels[i] == color(255,127,255)) 	{pixels[i] = C_BLACK;}
+		/*shorts Team 1*/
+		if (pixels[i] == color(127,127,0)) 		{pixels[i] = C_PURPLE;}
+		/*socks Team 1*/
+		if (pixels[i] == color(63,255,63)) 		{pixels[i] = C_GRAY;}
+	
+	}
+	updatePixels();
 }
 
 
@@ -98,13 +133,16 @@ void Render_Frame (int frame) {
 	if (frame > 20) {
 		for (int c =0 ; c < 20; c++){
 			strokeWeight (10-(int(c/2)));
-			stroke (#004500, 100-int(c*4));
+			stroke (#004500, 200-int(c*10));
 			/*shadow line*/
 			line(	Ball_Data[frame-c][0] - Cxo + 7,
 					Ball_Data[frame-c][1] - Cyo + 13,
 					Ball_Data[frame-c-1][0] - Cxo + 7,
 					Ball_Data[frame-c-1][1] - Cyo + 13);
-			stroke (#FFFFFF,100-int(c*4));
+		}
+		for (int c =0 ; c < 20; c++){
+			strokeWeight (10-(int(c/2)));
+			stroke (#FFFFFF,200-int(c*10));
 			/*white line*/
 			line(	Ball_Data[frame-c][0] - Cxo + 7,
 					Ball_Data[frame-c][1] - Ball_Data[frame-c][2] - Cyo + 13,
@@ -231,4 +269,26 @@ void load_replay_slot(int slot) {
 
 int d_b_t_p (int x1, int y1, int x2, int y2) {
     return int (sqrt(((x1-x2)*(x1-x2))+((y1-y2)*(y1-y2))));
+}
+
+PImage[] paint_custom_kit(PImage[] img, int c1, int c2, int c3) {
+  PImage switched = img.get(0,0,5,5);
+  switched.loadPixels();
+   for (int i=0; i<switched.pixels.length; i++) {
+    /*shirt color*/
+    if (switched.pixels[i] == 0xFF00007F) {
+      switched.pixels[i] = 0xFF00DDFF;
+    }
+    /*shorts colos*/
+   if (switched.pixels[i] == 0xFF7F7FFF) {
+      switched.pixels[i] = c2;
+    }
+    /*socks colos*/
+    if (switched.pixels[i] == 0xFF3F003F) {
+      switched.pixels[i] = c3;
+    }
+    switched.pixels[i] = c1;
+  }
+  switched.updatePixels();
+  return switched;
 }
