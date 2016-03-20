@@ -24,12 +24,17 @@ int TOT_FRAMES 		= 120;
 int Current_Frame 	= 0;
 int Replay_Line 	= 0;
 int SCREEN_W 		= 320;
-int SCREEN_H 		= 180;
+int SCREEN_H 		= 200;
 int SCREEN_LEN		= SCREEN_H * SCREEN_W;
 int r_slot 			= 0;
 String Replay_Data[] = loadStrings("rep/"+r_slot+".rep");
 Player_Data 		= new int[120][22][3];
 Ball_Data 			= new int[120][4];
+
+int kits[] = {0,0,0,0,0,0};
+int colors[] = {C_BLACK, C_WHITE, C_GRAY, C_RED, C_BLUE, C_GREEN, C_YELLOW,
+				C_CYAN, C_LILIAC, C_ORANGE, C_PURPLE, C_DARK_RED, C_DARK_GREEN,
+				C_DARK_BLUE};
 
 float CAMERA_EASING_RATIO = 0.25;
 
@@ -59,7 +64,11 @@ int cy=Ym;
 int bx = 300;
 int by = 300;
 
-
+void shuffle_kit_colors() {
+	for (int c = 0; c < kits.length; c++){
+		kits[c] = colors[int(random(colors.length))];
+	}
+}
 
 // Setup the Processing Canvas
 void setup(){
@@ -81,14 +90,14 @@ void setup(){
 	for (a=1;a<16;a++){
 		bmp_ball[a] = loadImage("img/ball/_"+a+".png");
 	}
-	load_replay_slot(int(random(19)));
+	load_replay_slot(r_slot);
+	shuffle_kit_colors();
 }
 
 // Main draw loop
 void draw(){
 	noSmooth();
-	// Fill canvas green
-	background( #00AA00 );
+
 	stroke (#005500);
 
 	//Draw background pitch
@@ -98,29 +107,30 @@ void draw(){
 	Render_Frame(Current_Frame);
 	Current_Frame++;
 	
-	if (Current_Frame > TOT_FRAMES-1) {
-		load_replay_slot(int(random(19)));
-		Current_Frame =0;
-	}
-	update_camera_position(Ball_Data[Current_Frame][0], Ball_Data[Current_Frame][1]);
-
 	loadPixels();
 	for (int i = 0; i < SCREEN_LEN; i++) {
 		/*shirt Team 0*/
-		if (pixels[i] == color(0,0,127)) 		{pixels[i] = C_DARK_RED;}
+		if (pixels[i] == color(0,0,127)) 		{pixels[i] = kits[0];}
 		/*shorts Team 0*/
-		if (pixels[i] == color(127,127,255)) 	{pixels[i] = C_WHITE;}
+		if (pixels[i] == color(127,127,255)) 	{pixels[i] = kits[1];}
 		/*socks Team 0*/
-		if (pixels[i] == color(63,0,63)) 		{pixels[i] = C_DARK_RED;}
+		if (pixels[i] == color(63,0,63)) 		{pixels[i] = kits[2];}
 		/*shirt Team 1*/
-		if (pixels[i] == color(255,127,255)) 	{pixels[i] = C_BLACK;}
+		if (pixels[i] == color(255,127,255)) 	{pixels[i] = kits[3];}
 		/*shorts Team 1*/
-		if (pixels[i] == color(127,127,0)) 		{pixels[i] = C_PURPLE;}
+		if (pixels[i] == color(127,127,0)) 		{pixels[i] = kits[4];}
 		/*socks Team 1*/
-		if (pixels[i] == color(63,255,63)) 		{pixels[i] = C_GRAY;}
-	
+		if (pixels[i] == color(63,255,63)) 		{pixels[i] = kits[5];}
 	}
 	updatePixels();
+
+	if (Current_Frame > TOT_FRAMES-1) {
+		r_slot++;
+		load_replay_slot(r_slot);
+		shuffle_kit_colors()
+		Current_Frame =0;
+	}
+	update_camera_position(Ball_Data[Current_Frame][0], Ball_Data[Current_Frame][1]);
 }
 
 
@@ -159,7 +169,7 @@ void Render_Frame (int frame) {
 			image( bmp_t1_sprite[Player_Data[frame][c][2]], Player_Data[frame][c][0] - Cxo, Player_Data[frame][c][1] - Cyo);
 		}
 	}
-	
+
 	/*Ball Shadow*/
 	fill(#003300);
 	stroke (#003300);
