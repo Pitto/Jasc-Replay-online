@@ -19,12 +19,14 @@ int C_PURPLE 		= 0xFF7F007F;
 int C_DARK_RED 		= 0xFF7F0000;
 int C_DARK_GREEN 	= 0xFF007F00;
 int C_DARK_BLUE 	= 0xFF00007F;
+int C_HAIR_YELLOW 	= 0xFFE09E00;
+int C_BROWN		 	= 0xFF462008;
 
 int TOT_FRAMES 		= 120;
 int Current_Frame 	= 0;
 int Replay_Line 	= 0;
-int SCREEN_W 		= 320;
-int SCREEN_H 		= 200;
+int SCREEN_W 		= 360;
+int SCREEN_H 		= 240;
 int SCREEN_LEN		= SCREEN_H * SCREEN_W;
 int r_slot 			= 0;
 String Replay_Data[] = loadStrings("rep/"+r_slot+".rep");
@@ -35,6 +37,8 @@ int kits[] = {0,0,0,0,0,0};
 int colors[] = {C_BLACK, C_WHITE, C_GRAY, C_RED, C_BLUE, C_GREEN, C_YELLOW,
 				C_CYAN, C_LILIAC, C_ORANGE, C_PURPLE, C_DARK_RED, C_DARK_GREEN,
 				C_DARK_BLUE};
+				
+int Skin[] = {0,0,0,1,2,0,0,2,2,1,1,1,1,0,0,1,0,1,2,0,1,0};
 
 float CAMERA_EASING_RATIO = 0.25;
 
@@ -67,6 +71,9 @@ int by = 300;
 void shuffle_kit_colors() {
 	for (int c = 0; c < kits.length; c++){
 		kits[c] = colors[int(random(colors.length))];
+	}
+	for (int c = 0; c < Skin.length; c++){
+		Skin[c] = int(random(3));
 	}
 }
 
@@ -105,24 +112,10 @@ void draw(){
 						Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
 	
 	Render_Frame(Current_Frame);
+	replace_colors(Current_Frame);
 	Current_Frame++;
 	
-	loadPixels();
-	for (int i = 0; i < SCREEN_LEN; i++) {
-		/*shirt Team 0*/
-		if (pixels[i] == color(0,0,127)) 		{pixels[i] = kits[0];}
-		/*shorts Team 0*/
-		if (pixels[i] == color(127,127,255)) 	{pixels[i] = kits[1];}
-		/*socks Team 0*/
-		if (pixels[i] == color(63,0,63)) 		{pixels[i] = kits[2];}
-		/*shirt Team 1*/
-		if (pixels[i] == color(255,127,255)) 	{pixels[i] = kits[3];}
-		/*shorts Team 1*/
-		if (pixels[i] == color(127,127,0)) 		{pixels[i] = kits[4];}
-		/*socks Team 1*/
-		if (pixels[i] == color(63,255,63)) 		{pixels[i] = kits[5];}
-	}
-	updatePixels();
+
 
 	if (Current_Frame > TOT_FRAMES-1) {
 		r_slot++;
@@ -281,24 +274,53 @@ int d_b_t_p (int x1, int y1, int x2, int y2) {
     return int (sqrt(((x1-x2)*(x1-x2))+((y1-y2)*(y1-y2))));
 }
 
-PImage[] paint_custom_kit(PImage[] img, int c1, int c2, int c3) {
-  PImage switched = img.get(0,0,5,5);
-  switched.loadPixels();
-   for (int i=0; i<switched.pixels.length; i++) {
-    /*shirt color*/
-    if (switched.pixels[i] == 0xFF00007F) {
-      switched.pixels[i] = 0xFF00DDFF;
-    }
-    /*shorts colos*/
-   if (switched.pixels[i] == 0xFF7F7FFF) {
-      switched.pixels[i] = c2;
-    }
-    /*socks colos*/
-    if (switched.pixels[i] == 0xFF3F003F) {
-      switched.pixels[i] = c3;
-    }
-    switched.pixels[i] = c1;
-  }
-  switched.updatePixels();
-  return switched;
+void replace_colors(int frame) {
+	loadPixels();
+	//draw players				
+	for (int c = 0; c < 22; c++) {
+		if (c == 0 || c == 11) {continue;}
+		int x = Player_Data[frame][c][0] - Cxo;
+		int y = Player_Data[frame][c][1] - Cyo;
+		int w = 21; //player sprite height
+		int h = 25; //player sprite witdth
+		int pw = w; //player visible pixel width
+		int ph = h; //player visible pixel height
+		/*change colors only if player is visible into the frame*/
+		if (x + pw > 0 && x < SCREEN_W && y + ph > 0 && y < SCREEN_H) {
+			if (x + pw > SCREEN_W) { pw = abs(x - SCREEN_W - 1);}
+			if (y + ph > SCREEN_H) { ph = abs(y - SCREEN_H - 1);}
+			for (int row = y; row < y + ph; row ++) {
+				for (int col = x; col < x + pw; col++) {
+					int ref_pixel = col + row * SCREEN_W;
+					if (c < 11) {
+						/*shirt Team 1*/
+						if (pixels[ref_pixel] == color(255,127,255)) 	{pixels[ref_pixel] = kits[3];}
+						/*shorts Team 1*/
+						if (pixels[ref_pixel] == color(127,127,0)) 		{pixels[ref_pixel] = kits[4];}
+						/*socks Team 1*/
+						if (pixels[ref_pixel] == color(63,255,63)) 		{pixels[ref_pixel] = kits[5];}
+					} else {
+						if (pixels[ref_pixel] == color(0,0,127)) 		{pixels[ref_pixel] = kits[0];}
+						/*shorts Team 0*/
+						if (pixels[ref_pixel] == color(127,127,255)) 	{pixels[ref_pixel] = kits[1];}
+						/*socks Team 0*/
+						if (pixels[ref_pixel] == color(63,0,63)) 		{pixels[ref_pixel] = kits[2];}
+					}
+					switch (Skin[c]) {
+						case 1:
+						/*hair*/
+						if (pixels[ref_pixel] == color(23,23,23)) 		{pixels[ref_pixel] = C_HAIR_YELLOW;}
+						break;
+						case 2:
+						/*skin*/
+						if (pixels[ref_pixel] == color(255,125,20)) 	{pixels[ref_pixel] = C_BROWN;}
+						break;
+					}
+					
+				}
+			}
+		}
+	}
+	updatePixels();
+	
 }
