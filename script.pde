@@ -23,7 +23,7 @@ int C_HAIR_YELLOW 	= 0xFFE09E00;
 int C_BROWN		 	= 0xFF462008;
 
 int TOT_FRAMES 		= 120;
-int Current_Frame 	= 0;
+float Current_Frame 	= 0;
 int Replay_Line 	= 0;
 int SCREEN_W 		= 360;
 int SCREEN_H 		= 240;
@@ -36,7 +36,7 @@ Ball_Data 			= new int[120][4];
 int kits[] = {0,0,0,0,0,0};
 int colors[] = {C_BLACK, C_WHITE, C_GRAY, C_RED, C_BLUE, C_GREEN, C_YELLOW,
 				C_CYAN, C_LILIAC, C_ORANGE, C_PURPLE, C_DARK_RED, C_DARK_GREEN,
-				C_DARK_BLUE};
+				C_DARK_BLUE, C_BROWN, C_HAIR_YELLOW};
 				
 int Skin[] = {0,0,0,1,2,0,0,2,2,1,1,1,1,0,0,1,0,1,2,0,1,0};
 
@@ -67,6 +67,7 @@ int cx=Xm;
 int cy=Ym;
 int bx = 300;
 int by = 300;
+float Dt = 1;
 
 void shuffle_kit_colors() {
 	for (int c = 0; c < kits.length; c++){
@@ -111,19 +112,23 @@ void draw(){
 	draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
 						Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
 	
-	Render_Frame(Current_Frame);
-	replace_colors(Current_Frame);
-	Current_Frame++;
+	Render_Frame(int(Current_Frame));
+	replace_colors(int(Current_Frame));
+	Current_Frame += Dt;
 	
+	if (int(Current_Frame) > 80) {
+		Dt *= 0.985;
+	}
 
 
-	if (Current_Frame > TOT_FRAMES-1) {
+	if (int(Current_Frame) > TOT_FRAMES-1) {
 		r_slot++;
 		load_replay_slot(r_slot);
 		shuffle_kit_colors()
 		Current_Frame =0;
+		Dt = 1;
 	}
-	update_camera_position(Ball_Data[Current_Frame][0], Ball_Data[Current_Frame][1]);
+	update_camera_position(Ball_Data[int(Current_Frame)][0], Ball_Data[int(Current_Frame)][1]);
 }
 
 
