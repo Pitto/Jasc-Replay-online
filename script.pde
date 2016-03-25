@@ -116,8 +116,8 @@ void draw(){
 	replace_colors(int(Current_Frame));
 	Current_Frame += Dt;
 	
-	if (int(Current_Frame) > 80) {
-		Dt *= 0.985;
+	if (int(Current_Frame) > 90) {
+		Dt *= 0.975;
 	}
 
 
