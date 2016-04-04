@@ -4,6 +4,7 @@ bmp_ball 		= new Pimage[15];
 bmp_t1_sprite 	= new Pimage[136];
 bmp_t2_sprite 	= new Pimage[136];
 bmp_pitch 		= new Pimage[];
+bmp_wallp 		= new Pimage[];
 /* COLORS: Hex (Alpha, Red, Green, Blue) */
 int C_BLACK 		= 0xFF000000;
 int C_WHITE 		= 0xFFFFFFFF;
@@ -69,6 +70,45 @@ int bx = 300;
 int by = 300;
 float Dt = 1;
 
+int DISPLAY_REPLAY = 0;
+int Now;
+PFont font;
+
+
+/*team random names*/
+
+String Team_names[] = {"Coatta Guidonia", "River Fiumicino", "Atletico Pomezia", "Real Velletri",
+"Borussia Nettuno", "Boca Ladispoli", "Cerdomare", "Poggio Moiano", "Rieti",
+"Burinia", "Cafonia", "Borussia Mentana", "Aciliese", "Dragoshima", 
+"Frascati Owata", "Colleferro United", "Braccianese", "Formellese"};
+
+String Surnames[] = {	"AGOSTINI","AIELLO","ALBANESE","AMATO","ANTONELLI","ARENA",
+						"BALDI","BARBIERI","BARONE","BASILE","BATTAGLIA","BELLINI",
+						"BENEDETTI","BERNARDI","BIANCHI","BIANCO","BRAMBILLA","BRUNI",
+						"BRUNO","CALABRESE","CAPUTO","CARBONE","CARUSO","CASTELLI",
+						"CATALANO","CATTANEO","CAVALLO","CECCARELLI","CIRILLO",
+						"COLOMBO","CONTE","CONTI","COPPOLA","COSTA","COSTANTINI",
+						"DE ANGELIS","DE LUCA","DE ROSA","DE SANTIS","DE SIMONE",
+						"DI STEFANO","DONATI","ESPOSITO","FABBRI","FARINA","FERRANTE",
+						"FERRARA","FERRARI","FERRARO","FERRERO","FERRETTI","FERRI","FERRO","FIORE","FONTANA",
+						"FRANCO","FUMAGALLI","FUSCO","GALLI","GALLO","GARGIULO","GAROFALO","GATTI","GENTILE",
+						"GIORDANO","GIORGI","GIULIANI","GRASSI","GRASSO","GRECO","GRIMALDI","GUERRA","GUIDI",
+						"LEONE","LOMBARDI","LOMBARDO","LONGO","LORUSSO","MANCINI","MARCHETTI","MARCHI",
+						"MARIANI","MARINI","MARINO","MARRA","MARTINELLI","MARTINI","MARTINO","MAZZA",
+						"MELE","MELONI","MESSINA","MILANI","MONACO","MONTANARI","MONTI","MORELLI","BITTONI",
+						"MORETTI","MORO","NAPOLITANO","NERI","OLIVIERI","ORLANDO","PACE","PAGANO",
+						"PALMIERI","PALUMBO","PARISI","PASTORE","PELLEGRINI","PELLEGRINO","PEPE",
+						"PERRONE","PIAZZA","PICCOLO","PINNA","PIRAS","POLI","POZZI","PROIETTI",
+						"RICCI","RICCIARDI","RINALDI","RIVA","RIZZI","RIZZO","ROMANO","ROMEO","ROSSETTI",
+						"ROSSI","RUGGERI","RUGGIERO","RUSSO","SALA","SANNA","SANTINI","SANTORO","SARTORI",
+						"SERRA","SILVESTRI","SORRENTINO","TESTA","VALENTE","VALENTINI","VILLA",
+						"VILLANI","VITALE","VITALI","VOLPE","ZANETTI","HALEK", "MILIK", "PIPPO", "SALAM", "PISELLI"};
+String Team_home_surnames[] = {"","","","","","","","","","","",""};
+String Team_away_surnames[] = {"","","","","","","","","","","",""};
+
+String Team_home;
+String Team_away;
+
 void shuffle_kit_colors() {
 	for (int c = 0; c < kits.length; c++){
 		kits[c] = colors[int(random(colors.length))];
@@ -84,6 +124,9 @@ void setup(){
 	size(SCREEN_W, SCREEN_H);
 	//strokeWeight( 10 );
 	frameRate( 30 );
+	
+	font = loadFont("arial.ttf"); 
+
 	for (a=0;a<136;a++){
 		int b;
 		b = a +1;
@@ -94,41 +137,105 @@ void setup(){
 	bmp_net[0] = 	loadImage("img/pitch/net_top.png"); 
 	bmp_net[1] = 	loadImage("img/pitch/net_bottom.png");
 	bmp_pitch  = 	loadImage("img/pitch/pitch.png");
+	bmp_wallp  = 	loadImage("img/wallp.jpg");
 		
 	for (a=1;a<16;a++){
 		bmp_ball[a] = loadImage("img/ball/_"+a+".png");
 	}
 	load_replay_slot(r_slot);
 	shuffle_kit_colors();
+	Now = millis();
 }
 
 // Main draw loop
 void draw(){
 	noSmooth();
 
-	stroke (#005500);
+	if (!DISPLAY_REPLAY) {
 
-	//Draw background pitch
-	draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
-						Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
-	
-	Render_Frame(int(Current_Frame));
-	replace_colors(int(Current_Frame));
-	Current_Frame += Dt;
-	
-	if (int(Current_Frame) > 90) {
-		Dt *= 0.975;
-	}
-
-
-	if (int(Current_Frame) > TOT_FRAMES-1) {
-		r_slot++;
-		load_replay_slot(r_slot);
-		shuffle_kit_colors()
+		if (millis() - Now > 3500) {
+			DISPLAY_REPLAY = 1;
+		}
+		team_presentation();
 		Current_Frame =0;
-		Dt = 1;
+		replace_colors(int(Current_Frame));
+		
+	}else{
+		stroke (#005500);
+		//Draw background pitch
+		draw_pitch_lines ( 	Pitch_x, Pitch_y, Pitch_w, Pitch_h, Xm, Ym, Paw, Pah,
+							Pac, Padw, Padd, Gkw, Gkh, Cxo, Cyo);
+		
+		Render_Frame(int(Current_Frame));
+		replace_colors(int(Current_Frame));
+		Current_Frame += Dt;
+	
+		if (int(Current_Frame) > 90) {
+			Dt *= 0.975;
+		}
+
+		if (int(Current_Frame) > TOT_FRAMES-1) {
+			r_slot++;
+			load_replay_slot(r_slot);
+			DISPLAY_REPLAY = 0;
+			Now = millis();
+			shuffle_kit_colors()
+			Current_Frame =1;
+			Dt = 1;
+		}
+
+		update_camera_position(Ball_Data[int(Current_Frame)][0], Ball_Data[int(Current_Frame)][1]);
+		
 	}
-	update_camera_position(Ball_Data[int(Current_Frame)][0], Ball_Data[int(Current_Frame)][1]);
+
+}
+
+void team_presentation() {
+	Cxo = 0;
+	Cyo = 0;
+	int top_margin = 40;
+	image(bmp_wallp, 0,0);
+	
+	fill(C_YELLOW);
+	textFont(font, 20);
+	
+	textAlign(CENTER); 
+	text(Team_home + " - " + Team_away, SCREEN_W / 2, top_margin - 15);
+	fill(C_WHITE);
+	textFont(font, 10);
+	int c = 1;
+	for (int col = 1; col < 4 ; col++) {
+		for (int row = 1; row < 12; row++) {
+			c++;
+			switch (col) {
+				case 1:
+					fill(C_WHITE);
+					textAlign(RIGHT); 
+					text	(Team_home_surnames[row-1], SCREEN_W /2 - 60, top_margin + row * 16);
+					fill(C_YELLOW);
+					text	(row, SCREEN_W /2 - 40, top_margin + row * 16);
+				case 2:
+					
+					Player_Data[0][row-1][0] = SCREEN_W/2 - 40;
+					Player_Data[0][row-1][1] = top_margin + row * 16 - 16;
+					image(bmp_t2_sprite[102], Player_Data[0][row-1][0], Player_Data[0][row-1][1]);
+
+				case 3:
+					textAlign(LEFT);
+					fill(C_YELLOW); 
+					text	(row, SCREEN_W /2 + 40, top_margin + row * 16);
+					fill(C_WHITE);
+					text	(Team_away_surnames[row-1], SCREEN_W /2 + 60, top_margin + row * 16);
+				case 4:
+					fill(C_YELLOW);
+					Player_Data[0][row+10][0] = SCREEN_W/2 + 17;
+					Player_Data[0][row+10][1] = top_margin + row * 16 - 16;
+					image(bmp_t1_sprite[102], Player_Data[0][row+10][0], Player_Data[0][row+10][1]);
+				break;
+
+			}
+		}
+	}
 }
 
 
@@ -159,12 +266,18 @@ void Render_Frame (int frame) {
 		}
 	}
 	
-	//draw players				
+	//draw players	
+	textAlign(CENTER);
+	fill(C_WHITE);
+	textFont(font, 7);		
 	for (int c = 0; c < 22; c++) {
 		if (c < 11) {
 			image( bmp_t2_sprite[Player_Data[frame][c][2]], Player_Data[frame][c][0] - Cxo, Player_Data[frame][c][1] - Cyo);
+			
+			text	(Team_home_surnames[c], Player_Data[frame][c][0] - Cxo + 11, Player_Data[frame][c][1] - Cyo + 32);
 		}else{
 			image( bmp_t1_sprite[Player_Data[frame][c][2]], Player_Data[frame][c][0] - Cxo, Player_Data[frame][c][1] - Cyo);
+			text	(Team_away_surnames[c - 12], Player_Data[frame][c][0] - Cxo + 11, Player_Data[frame][c][1] - Cyo + 32);
 		}
 	}
 
@@ -254,6 +367,18 @@ void update_camera_position(int bx, int by) {
 }
 
 void load_replay_slot(int slot) {
+	int a; int b;
+	a = int(random(Team_names.length));
+	b = int(random(Team_names.length));
+
+	Team_home = Team_names[a];
+	Team_away = Team_names[b];
+	
+	for (int c = 0; c < 11; c++) {
+		Team_home_surnames[c] = Surnames[int(random(Surnames.length))];
+		Team_away_surnames[c] = Surnames[int(random(Surnames.length))];
+	}
+	
 	Replay_Data = loadStrings("rep/" + slot + ".rep");
 	int current_line = 0;
 	for (t=0; t< TOT_FRAMES; t++) {
@@ -329,3 +454,5 @@ void replace_colors(int frame) {
 	updatePixels();
 	
 }
+
+
